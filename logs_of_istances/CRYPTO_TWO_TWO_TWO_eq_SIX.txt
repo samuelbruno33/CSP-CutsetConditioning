@@ -1,0 +1,53 @@
+=== ESECUZIONE: CRYPTO_TWO_TWO_TWO_eq_SIX ===
+
+
+=== CUTSET CONDITIONING ===
+Variabili: ['T', 'W', 'O', 'S', 'I', 'X']
+Cutset individuato: ['O', 'S', 'T', 'W']
+
+--- Provo assegnazione partial: {'O': 0, 'S': 1, 'T': 1, 'W': 0}
+partial viola vincolo su ('T', 'S')
+
+--- Provo assegnazione partial: {'O': 0, 'S': 1, 'T': 1, 'W': 1}
+partial viola vincolo su ('T', 'W')
+
+--- Provo assegnazione partial: {'O': 0, 'S': 1, 'T': 1, 'W': 2}
+partial viola vincolo su ('T', 'S')
+
+--- Provo assegnazione partial: {'O': 0, 'S': 1, 'T': 1, 'W': 3}
+partial viola vincolo su ('T', 'S')
+
+--- Provo assegnazione partial: {'O': 0, 'S': 1, 'T': 1, 'W': 4}
+partial viola vincolo su ('T', 'S')
+
+--- Provo assegnazione partial: {'O': 0, 'S': 1, 'T': 1, 'W': 5}
+partial viola vincolo su ('T', 'S')
+
+--- Provo assegnazione partial: {'O': 0, 'S': 1, 'T': 1, 'W': 6}
+partial viola vincolo su ('T', 'S')
+
+--- Provo assegnazione partial: {'O': 0, 'S': 1, 'T': 1, 'W': 7}
+partial viola vincolo su ('T', 'S')
+
+--- Provo assegnazione partial: {'O': 0, 'S': 1, 'T': 1, 'W': 8}
+partial viola vincolo su ('T', 'S')
+
+--- Provo assegnazione partial: {'O': 0, 'S': 1, 'T': 1, 'W': 9}
+partial viola vincolo su ('T', 'S')
+
+--- Provo assegnazione partial: {'O': 0, 'S': 1, 'T': 2, 'W': 0}
+partial viola vincolo su ('W', 'O')
+
+--- Provo assegnazione partial: {'O': 0, 'S': 1, 'T': 2, 'W': 1}
+partial viola vincolo su ('W', 'S')
+
+--- Provo assegnazione partial: {'O': 0, 'S': 1, 'T': 2, 'W': 2}
+partial viola vincolo su ('T', 'W')
+
+--- Provo assegnazione partial: {'O': 0, 'S': 1, 'T': 2, 'W': 3}
+residual vars/domains: [('I', [4, 5, 6, 7, 8, 9]), ('X', [4, 5, 6, 7, 8, 9])]
+Sol residua trovata: {'I': 4, 'X': 5}
+SOLUZIONE COMPLETA: {'I': 4, 'X': 5, 'O': 0, 'S': 1, 'T': 2, 'W': 3}
+
+--- RISULTATO FINALE PER CRYPTO_TWO_TWO_TWO_eq_SIX: {'I': 4, 'X': 5, 'O': 0, 'S': 1, 'T': 2, 'W': 3}
+

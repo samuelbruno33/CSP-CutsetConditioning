@@ -1,0 +1,14 @@
+=== ESECUZIONE: CRYPTO_T_plus_T_eq_EE ===
+
+
+=== CUTSET CONDITIONING ===
+Variabili: ['T', 'E']
+Cutset individuato: []
+
+--- Provo assegnazione partial: {}
+residual vars/domains: [('T', [1, 2, 3, 4, 5, 6, 7, 8, 9]), ('E', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])]
+Nessuna soluzione residual, proseguo…
+Fallito: nessuna assegnazione di cutset porta a soluzione.
+
+--- RISULTATO FINALE PER CRYPTO_T_plus_T_eq_EE: None
+

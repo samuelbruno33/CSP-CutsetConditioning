@@ -1,0 +1,17 @@
+=== ESECUZIONE: MAP_USA semplificata ===
+
+
+=== CUTSET CONDITIONING ===
+Variabili: ['WA', 'OR', 'CA', 'NV', 'UT']
+Cutset individuato: ['CA', 'OR']
+
+--- Provo assegnazione partial: {'CA': 'R', 'OR': 'R'}
+partial viola vincolo su ('OR', 'CA')
+
+--- Provo assegnazione partial: {'CA': 'R', 'OR': 'G'}
+residual vars/domains: [('WA', ['R', 'B']), ('NV', ['G', 'B']), ('UT', ['B'])]
+Sol residua trovata: {'WA': 'R', 'NV': 'G', 'UT': 'B'}
+SOLUZIONE COMPLETA: {'WA': 'R', 'NV': 'G', 'UT': 'B', 'CA': 'R', 'OR': 'G'}
+
+--- RISULTATO FINALE PER MAP_USA semplificata: {'WA': 'R', 'NV': 'G', 'UT': 'B', 'CA': 'R', 'OR': 'G'}
+

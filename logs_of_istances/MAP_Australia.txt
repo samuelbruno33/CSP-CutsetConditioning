@@ -1,0 +1,14 @@
+=== ESECUZIONE: MAP_Australia ===
+
+
+=== CUTSET CONDITIONING ===
+Variabili: ['WA', 'NT', 'SA', 'Q', 'NSW', 'V', 'T']
+Cutset individuato: ['SA']
+
+--- Provo assegnazione partial: {'SA': 'R'}
+residual vars/domains: [('WA', ['G', 'B']), ('NT', ['G', 'B']), ('Q', ['G', 'B']), ('NSW', ['G', 'B']), ('V', ['G', 'B']), ('T', ['R', 'G', 'B'])]
+Sol residua trovata: {'WA': 'G', 'NT': 'B', 'Q': 'G', 'NSW': 'B', 'V': 'G', 'T': 'R'}
+SOLUZIONE COMPLETA: {'WA': 'G', 'NT': 'B', 'Q': 'G', 'NSW': 'B', 'V': 'G', 'T': 'R', 'SA': 'R'}
+
+--- RISULTATO FINALE PER MAP_Australia: {'WA': 'G', 'NT': 'B', 'Q': 'G', 'NSW': 'B', 'V': 'G', 'T': 'R', 'SA': 'R'}
+
