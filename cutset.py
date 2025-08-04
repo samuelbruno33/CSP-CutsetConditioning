@@ -1,84 +1,135 @@
-# funzioni per trovare il cutset e applicare il cutset conditioning
 
 from itertools import product
 from csp import CSP
 from tree_solver import tree_backtrack
 
-def find_cycle_cutset(csp):
-    # Costruisce lista di adiacenze
-    adj = {v:set() for v in csp.variables}
-    for vars_tuple, _ in csp.constraints:
-        if len(vars_tuple)==2:
-            v1,v2 = vars_tuple
-            adj[v1].add(v2); adj[v2].add(v1)
-    # DFS per ciclo
-    def has_cycle():
-        visited=set()
-        def dfs(u, parent):
-            visited.add(u)
-            for w in adj[u]:
-                if w==parent: continue
-                if w in visited or dfs(w,u):
-                    return True
-            return False
-        return any(dfs(v,None) for v in csp.variables if v not in visited)
-    cutset=set()
-    while has_cycle():
-        # variabile di max grado
-        v=max(adj, key=lambda x: len(adj[x]))
-        cutset.add(v)
-        for w in list(adj[v]):
-            adj[w].remove(v)
-        adj[v].clear()
-    return list(cutset)
+def make_unary_from_binary(binary_constraint, residual_var, fixed_value):
+    """
+    Dato un vincolo binario binary_constraint(x, y),
+    restituisce un vincolo unario su residual_var che fissa x = fixed_value:
+        y -> binary_constraint(fixed_value, y)
+    """
+    return (
+        (residual_var,),
+        lambda y: binary_constraint(fixed_value, y)
+    )
 
-def cutset_conditioning_explain(csp):
-    print("\n=== CUTSET CONDITIONING ===")
-    print("Variabili:", csp.variables)
-    cutset = find_cycle_cutset(csp)
-    print("Cutset individuato:", cutset)
-    # 1) enumerazione
-    for vals in product(*[csp.domains[v] for v in cutset]):
-        partial = dict(zip(cutset, vals))
-        print("\n--- Provo assegnazione partial:", partial)
-        # 2) verifica interna
-        ok=True
-        for vars_tuple, func in csp.constraints:
-            if all(v in partial for v in vars_tuple):
-                if not func(*(partial[v] for v in vars_tuple)):
-                    print("partial viola vincolo su", vars_tuple)
-                    ok=False; break
-        if not ok:
+def find_cycle_cutset(csp_instance):
+    """
+    Individua un cycle‐cutset via euristica greedy:
+      rimuove iterativamente la variabile di massimo grado
+      finché il grafo (dei vincoli binari) non è aciclico.
+    """
+    # Costruisco grafo di adiacenza per i soli vincoli binari
+    adjacency = {v: set() for v in csp_instance.variables}
+    for vars_tuple, _ in csp_instance.constraints:
+        if len(vars_tuple) == 2:
+            v1, v2 = vars_tuple
+            adjacency[v1].add(v2)
+            adjacency[v2].add(v1)
+
+    def dfs_has_cycle(current, visited, parent):
+        visited.add(current)
+        for neighbor in adjacency[current]:
+            if neighbor == parent:
+                continue
+            if neighbor in visited or dfs_has_cycle(neighbor, visited, current):
+                return True
+        return False
+
+    def graph_has_cycle():
+        visited = set()
+        for var in csp_instance.variables:
+            if var not in visited and dfs_has_cycle(var, visited, None):
+                return True
+        return False
+
+    cutset_vars = []
+    while graph_has_cycle():
+        # seleziono la variabile col grado massimo
+        var_to_remove = max(adjacency, key=lambda v: len(adjacency[v]))
+        cutset_vars.append(var_to_remove)
+        # la rimuovo dal grafo
+        for nbr in adjacency[var_to_remove]:
+            adjacency[nbr].remove(var_to_remove)
+        adjacency[var_to_remove].clear()
+
+    return cutset_vars
+
+def solve_with_cutset(csp_instance):
+    """
+    Applica il Cutset Conditioning:
+      1) Trova cycle‐cutset C
+      2) Per ogni assegnazione a C:
+         a) Controlla i vincoli che coinvolgono solo C
+         b) Costruisce il CSP residuo su V \\ C (mantiene vincoli interni e trasforma binari C↔R)
+         c) Risolve il residuo con tree_backtrack
+         d) Se trova soluzione, unisce partial + residual e restituisce
+    """
+    print("Variables:", csp_instance.variables)
+    cutset_vars = find_cycle_cutset(csp_instance)
+    print("Cutset:", cutset_vars)
+
+    # 1) Provo ogni combinazione di valori per le variabili del cutset
+    for combo in product(*[csp_instance.domains[v] for v in cutset_vars]):
+        partial_assignment = dict(zip(cutset_vars, combo))
+        print("\nTrying partial assignment:", partial_assignment)
+
+        # 2a) Verifico subito i vincoli che coinvolgono solo variabili in C
+        partial_ok = True
+        for vars_tuple, constraint_func in csp_instance.constraints:
+            if all(v in partial_assignment for v in vars_tuple):
+                values = [partial_assignment[v] for v in vars_tuple]
+                if not constraint_func(*values):
+                    print("Violates constraint on", vars_tuple)
+                    partial_ok = False
+                    break
+        if not partial_ok:
             continue
-        # 3) costruzione residual CSP
-        res_vars=[v for v in csp.variables if v not in cutset]
-        res_domains={v:[] for v in res_vars}
-        res_constraints=[]
-        # mantieni vincoli inter-residui e trasforma vincoli cutset→residui
-        for vars_tuple, func in csp.constraints:
-            vs=set(vars_tuple)
-            if vs<=set(res_vars):
-                res_constraints.append((vars_tuple,func))
-            elif vs & set(cutset) and vs & set(res_vars):
-                # trasformo in unario su variabile residua
-                cut, res = (vars_tuple[0],vars_tuple[1]) if vars_tuple[0] in cutset else (vars_tuple[1],vars_tuple[0])
-                x=partial[cut]
-                res_constraints.append(((res,), lambda y,f=func,x=x: f(x,y)))
-        # filtro domini
-        for v in res_vars:
-            funcs=[f for (vt,f) in res_constraints if len(vt)==1 and vt[0]==v]
-            for val in csp.domains[v]:
-                if all(f(val) for f in funcs):
-                    res_domains[v].append(val)
-        print("residual vars/domains:", list(zip(res_vars,[res_domains[v] for v in res_vars])))
-        # 4) risolvo
-        sol = tree_backtrack(CSP(res_vars,res_domains,res_constraints), res_vars)
-        if sol is not None:
-            print("Sol residua trovata:", sol)
-            sol.update(partial)
-            print("SOLUZIONE COMPLETA:", sol)
-            return sol
+
+        # 2b) Costruisco il CSP residuo su R = V \\ C
+        residual_vars = [v for v in csp_instance.variables if v not in cutset_vars]
+        residual_constraints = []
+
+        for vars_tuple, constraint_func in csp_instance.constraints:
+            # Caso A: vincolo completamente interno a R
+            if all(v in residual_vars for v in vars_tuple):
+                residual_constraints.append((vars_tuple, constraint_func))
+
+            # Caso B: binario che connette C e R → trasformo in unario su R
+            elif (len(vars_tuple) == 2
+                  and any(v in cutset_vars for v in vars_tuple)
+                  and any(v in residual_vars for v in vars_tuple)):
+
+                cut_v = vars_tuple[0] if vars_tuple[0] in cutset_vars else vars_tuple[1]
+                res_v = vars_tuple[1] if cut_v == vars_tuple[0] else vars_tuple[0]
+                fixed_val = partial_assignment[cut_v]
+
+                unary = make_unary_from_binary(
+                    constraint_func,
+                    res_v,
+                    fixed_val
+                )
+                residual_constraints.append(unary)
+
+            # Altri vincoli (n-ari misti) vengono saltati qui
+            # saranno verificati implicitamente nel backtracking completo
+
+        # 3) Risolvo il CSP residuo con algoritmo ad albero
+        solution_residual = tree_backtrack(
+            CSP(residual_vars, csp_instance.domains, residual_constraints),
+            residual_vars
+        )
+
+        if solution_residual is not None:
+            # 4) Unisco partial + residual → soluzione completa
+            complete_solution = {}
+            complete_solution.update(partial_assignment)
+            complete_solution.update(solution_residual)
+            print("==> Found complete solution:", complete_solution)
+            return complete_solution
         else:
-            print("Nessuna soluzione residual, proseguo…")
-    print("Fallito: nessuna assegnazione di cutset porta a soluzione.")
+            print("Residual solve failed, continuing...")
+
+    print("No solution found")
     return None

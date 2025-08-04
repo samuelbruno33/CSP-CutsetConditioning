@@ -1,18 +1,20 @@
 # algoritmo di backtracking su CSP ad albero
 
-from csp import CSP
-
-def tree_backtrack(csp: CSP, order: list):
-    def backtrack(assignment, idx):
-        if idx == len(order): # order è una lista di variabili in un ordine tali che risolva facilmente l’albero.
-            return assignment
-        var = order[idx]
+def tree_backtrack(csp, order):
+    def backtrack(assignment, i):
+        if i == len(order):
+            return assignment.copy()
+        var = order[i]
         for val in csp.domains[var]:
+            # uso consistent per verificare var=val rispetto a assignment
             if csp.consistent(var, val, assignment):
                 assignment[var] = val
-                result = backtrack(assignment, idx + 1)
-                if result is not None:
-                    return result
-                del assignment[var]
+                sol = backtrack(assignment, i+1)
+                if sol:
+                    return sol
+        # backtrack: nessun valore ha funzionato
+        if var in assignment:
+            del assignment[var]
         return None
+
     return backtrack({}, 0)
