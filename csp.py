@@ -1,35 +1,44 @@
-# definizione della classe CSP
+# Definizione della classe CSP
 
 class CSP:
     def __init__(self, variables, domains, constraints):
-        self.variables  = variables    # lista di variabili che devo assegnare
-        self.domains    = domains      # uno dei possibili valori del dominio
-        self.constraints = constraints # lista di vincoli del tipo (vars_tuple, func)
+        self.variables = variables # lista di variabili che devo assegnare (ad es. ['WA','NT','SA', ecc])
+        self.domains = domains # dict di var -> lista di valori possibili (ad es. {'WA':['R','G','B'],ecc})
+        # constraints: lista di vincoli, ognuno è (constraint_variables, constraint_function)
+        #   - constraint_variables: tupla di nomi di variabili coinvolte
+        #   - constraint_function: funzione che riceve i values e restituisce True/False se rispetta o no i vincoli
+        self.constraints = constraints
 
-    def consistent(self, var, val, assignment):
-        # assignment: dict parziale delle variabili già assegnate
+    def consistent(self, variable, value, partial_assignment):
+        # partial_assignment: dict parziale delle variabili già assegnate
         # Provo ad aggiungere var=val all'assegnazione parziale
         # -> ad es. val è R (colore rosso), mentre var è SA (regione mappa Australia)
-        assignment[var] = val
-        # Controllo tutti i vincoli di qualunque numero di variabili
-        for vars_tuple, func in self.constraints:
-            ready = True
-            vals = []
-            # Controllo solo se tutte le variabili del vincolo sono in assignment
-            # vars_tuple: es. ('WA','NT') o ('S','E','N','D','M','O','R','Y')
-            for v in vars_tuple:
-                if v not in assignment:
-                    ready = False
+        partial_assignment[variable] = value
+
+        # controllo tutti i vincoli definiti
+        for constraint_variables, constraint_function in self.constraints:
+            # controllo solo se tutte le variabili del vincolo sono assegnate
+            # var: ad es. ('WA','NT') o ('S','E','N','D','M','O','R','Y')
+            all_assigned = True
+            values = []
+            for var in constraint_variables:
+                if var not in partial_assignment:
+                    all_assigned = False
                     break
-                vals.append(assignment[v])
-            if not ready:
+                values.append(partial_assignment[var])
+            if not all_assigned:
                 continue
-            # func: funzione che prende len(vars_tuple) valori e ritorna True/False
-            # unpacking: func(*vals) equivale a func(vals[0], vals[1], ecc ecc)
-            if not func(*vals):
-                # se il vincolo fallisce, tolgo var e restituisco Fals
-                del assignment[var]
+
+            # se il vincolo completo è assegnato, chiamo la funzione
+            # unpacking di constraint_function, cioè diventa constraint_function(values[0], values[1], ..)
+            # constraint_function è il lambda color1, color2: color1 != color2
+            # Se passiamo ('R','G') restituisce True, perché i colori sono diversi (vincolo soddisfatto).
+            # Se passiamo ('B','B') restituisce False, perché i colori coincidono (vincolo violato).
+            if not constraint_function(*values):
+                # vincolo violato: rimuovo l'assegnazione parziale e ritorno False
+                del partial_assignment[variable]
                 return False
-        #Se nessun vincolo è stato violato, tolgo var e restituisco True
-        del assignment[var]
+
+        # Se nessun vincolo violato tolgo l'assegnazione parziale e ritorno True
+        del partial_assignment[variable]
         return True
