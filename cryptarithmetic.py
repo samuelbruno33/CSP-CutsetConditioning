@@ -1,4 +1,5 @@
 # Genera le 3 istanze criptoaritmetiche
+
 from csp import CSP
 
 def send_more_money_csp():

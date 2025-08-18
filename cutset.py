@@ -1,4 +1,5 @@
 # Implementazione del Cutset Conditioning
+
 from itertools import product
 from csp import CSP
 from tree_solver import tree_backtrack
@@ -14,12 +15,12 @@ def make_unary_from_binary(binary_constraint, residual_variable, fixed_value):
         lambda y_val: binary_constraint(fixed_value, y_val)
     )
 
-def find_cycle_cutset(csp_instance):
-    """
+"""
     Individua un cycle-cutset con euristica greedy:
     1) costruisco grafo di adiacenza per i vincoli binari
     2) finché esiste un ciclo rimuovo la variabile di grado massimo
     """
+def find_cycle_cutset(csp_instance):
     # 1) costruisco grafo di adiacenza
     adjacency_dict = {v: set() for v in csp_instance.variables}
     for constraint_variables, _ in csp_instance.constraints:
@@ -113,10 +114,7 @@ def solve_with_cutset(csp_instance):
             # altri vincoli (n-ari misti) li saltiamo qui
 
         # 3) risolvo il CSP residuo con backtracking ad albero
-        solution_residual = tree_backtrack(
-            CSP(residual_variables, csp_instance.domains, residual_constraints),
-            residual_variables
-        )
+        solution_residual = tree_backtrack( CSP(residual_variables, csp_instance.domains, residual_constraints),residual_variables )
 
         if solution_residual is not None:
             # 4) unisco partial_assignment + solution_residual
