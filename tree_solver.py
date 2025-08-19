@@ -9,7 +9,7 @@ def tree_backtrack(csp_instance, variable_order):
         current_var = variable_order[i]
         # provo ogni valore possibile nel dominio
         for possible_value in csp_instance.domains[current_var]:
-            # uso consistent per verificare var=val rispetto ad assignment
+            # uso is_consistent per verificare current_var=possibe_val rispetto ad assignment
             if csp_instance.is_consistent(current_var, possible_value, partial_assignment):
                 # aggiungo current_var = possible_value nel dizionario
                 partial_assignment[current_var] = possible_value

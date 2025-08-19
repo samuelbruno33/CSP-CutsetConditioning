@@ -2,7 +2,7 @@
 Variabili CSP: ['WA', 'NT', 'SA', 'Q', 'NSW', 'V', 'T']
 Variabili del cutset: ['SA']
 
-Provo assegnazione parziale:  {'SA': 'R'}
-==> Soluzione completa trovata:  {'SA': 'R', 'WA': 'G', 'NT': 'B', 'Q': 'G', 'NSW': 'B', 'V': 'G', 'T': 'R'}
+Provo assegnazione parziale: {'SA': 'R'}
+==> Soluzione completa trovata: {'SA': 'R', 'WA': 'G', 'NT': 'B', 'Q': 'G', 'NSW': 'B', 'V': 'G', 'T': 'R'}
 
 ---> SOLUZIONE FINALE: {'SA': 'R', 'WA': 'G', 'NT': 'B', 'Q': 'G', 'NSW': 'B', 'V': 'G', 'T': 'R'}

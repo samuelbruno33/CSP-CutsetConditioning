@@ -2,10 +2,10 @@
 Variabili CSP: ['WA', 'OR', 'CA', 'NV', 'UT']
 Variabili del cutset: ['OR', 'CA']
 
-Provo assegnazione parziale:  {'OR': 'R', 'CA': 'R'}
-Violato vincolo su:  ('OR', 'CA')
+Provo assegnazione parziale: {'OR': 'R', 'CA': 'R'}
+Violato vincolo su: ('OR', 'CA')
 
-Provo assegnazione parziale:  {'OR': 'R', 'CA': 'G'}
-==> Soluzione completa trovata:  {'OR': 'R', 'CA': 'G', 'WA': 'G', 'NV': 'R', 'UT': 'B'}
+Provo assegnazione parziale: {'OR': 'R', 'CA': 'G'}
+==> Soluzione completa trovata: {'OR': 'R', 'CA': 'G', 'WA': 'G', 'NV': 'R', 'UT': 'B'}
 
 ---> SOLUZIONE FINALE: {'OR': 'R', 'CA': 'G', 'WA': 'G', 'NV': 'R', 'UT': 'B'}
