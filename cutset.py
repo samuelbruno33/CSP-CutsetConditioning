@@ -92,7 +92,6 @@ def solve_with_cutset(csp_instance):
         # per le mappe possono essere, se ad es il cutset è ['SA','NT'] ed è presente il vincolo ('NT','SA'), allroa questo non va bene
         # quello è l'unico caso per le mappe perchè le regioni non presentano di per sè dei vincoli unari
         # per le critpoaritmetiche invece vengono controllati anche i vincoli unari, quindi ad esempio che le prime lettere di ogni parola sia diverso da 0
-        # oppure i vincoli n-ari 
         partial_assignment_satisfies_constraints = True
         for constraint_variables, constraint_function in csp_instance.constraints:
             # controllo solo se il vincolo è interamente dentro il cutset
@@ -125,7 +124,7 @@ def solve_with_cutset(csp_instance):
 
         # adesso trasformo i vincoli per il residuo
         for constraint_variables, constraint_function in csp_instance.constraints:
-            # Caso 1: tutti nel residuo
+            # Caso di tutte le variabili presenti nel residuo
             all_variables_in_residual = True
             for var in constraint_variables:
                 if var not in residual_variables:
@@ -136,7 +135,7 @@ def solve_with_cutset(csp_instance):
                 residual_constraints.append((constraint_variables, constraint_function))
                 continue
 
-            # Caso 2: vincolo binario misto (cutset + residuo)
+            # Caso vincolo binario misto (ovvero variabili sia nel cutset che nel residuo)
             if len(constraint_variables) == 2:
                 first_var, second_var = constraint_variables[0], constraint_variables[1]
 

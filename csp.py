@@ -16,19 +16,28 @@ class CSP:
         # mentre per quanto riguarda la criptoaritmetica, variable è ad esempio S (in send more money) e value è il valore che voglio assegnargli
         partial_assignment[variable] = value
 
-        # controllo tutti i vincoli definiti
+        # controllo tutti i vincoli disponibili nel CSP
         for constraint_variables, constraint_function in self.constraints:
-            # controllo solo se tutte le variabili del vincolo sono assegnate
+
+            # controllo se il vincolo può essere valutato, e questo è possibile solo se tutte le variabili del vincolo sono assegnate,
+            # perchè se ho ('WA','NT') e 'WA' = 'R' ma 'NT' ancora non è stato valutato allora non ha senso controllare il vincolo, essendo 'NT' privo di colore assegnato ancora
             # var: ad es. ('WA','NT') o ('S','E','N','D','M','O','R','Y')
+
+            # flag che indica se tutte le variabili del vincolo sono presenti in partial_assignment
             all_assigned = True
-            # contiene i valori delle variabili
+            # contiene i valori delle variabili nello stesso ordine di constraint_variables
             values = []
             for var in constraint_variables:
+                # Se trovo una variabile non ancora assegnata non posso valutare il vincolo ora
                 if var not in partial_assignment:
                     all_assigned = False
-                    # Esce dal loop del for
+                    # Esce dal loop del for e salto la valutazione di questo vincolo
                     break
+
+                # se la variabile è assegnata prendo il suo valore e lo aggiungo alla lista
                 values.append(partial_assignment[var])
+
+            # Se almeno una variabile non è assegnata passo al vincolo successivo
             if not all_assigned:
                 # Vado all'iterazione successiva senza eseguire il codice sotto
                 continue
