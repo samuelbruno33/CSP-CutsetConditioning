@@ -32,7 +32,7 @@ Sono incluse istanze di map coloring e di criptoaritmetica per testare il corret
 Per riprodurre i risultati sperimentali:
 
 1. Copiare tutti i file Python nella stessa directory.  
-2. Assicurarsi di avere installato **Python 3.8+** (non sono richieste librerie esterne).  
+2. E' preferibile avere installata l’ultima versione di **Python 3** (non sono richieste librerie esterne).  
 3. Eseguire il comando:  
 
    ```bash
