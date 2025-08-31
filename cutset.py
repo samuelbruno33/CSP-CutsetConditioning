@@ -81,6 +81,8 @@ def solve_with_cutset(csp_instance):
     # ciclo su tutte le combinazioni di valori del cutset, per la mappa dell'australia
     # il primo tentativo sarebbe {'SA': 'R'} che si trova dentro partial_cutset_assignment
     # se non dovesse andare bene partirebbe poi con {'SA': 'G'} e cosi via
+    # product calcola il prodotto cartesiano della lista dei domini,
+    # quindi enumera tutte le possibili assegnazioni per le variabili nel cutset
     for cutset_values_combo in product(*cutset_domains_list):
         partial_cutset_assignment = {}
         for i in range(len(cutset_variables)):
@@ -136,6 +138,8 @@ def solve_with_cutset(csp_instance):
                 continue
 
             # Caso vincolo binario misto (ovvero variabili sia nel cutset che nel residuo)
+            # Qui controllo se il vincolo è binario e coinvolge una variabile in C e una in R
+            # Non posso lasciare i vincoli cosi come sono perché la variabile del cutset ha già un valore fissato
             if len(constraint_variables) == 2:
                 first_var, second_var = constraint_variables[0], constraint_variables[1]
 
