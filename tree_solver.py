@@ -3,13 +3,6 @@
 # Implementa l'algoritmo TREE-CSP-SOLVER (Russell & Norvig, capitolo 5.5)
 #  - passata bottom-up: MAKE-ARC-CONSISTENT(parent, child)
 #  - passata top-down: assegnamento dei valori compatibili senza backtracking
-#
-# IMPORTANTE:
-# - Questo solver si aspetta vincoli binari (scope length == 2) e vincoli unari (scope length == 1).
-# - Se ci sono vincoli n-ari (length > 2) nel CSP passato, il solver non può garantire il risultato
-#   (ritornerà None). Gestire vincoli n-ari richiede trasformazioni aggiuntive non implementate qui.
-#
-# Tutti i commenti sono in italiano; il codice è in inglese con nomi esplicativi.
 
 from collections import deque
 import copy
