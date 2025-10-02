@@ -1,25 +1,14 @@
-# tree_solver.py
-# Risolutore per CSP il cui grafo primale binario è un albero o una foresta.
+# Definizione del risolutore di alberi
+
 # Implementa l'algoritmo TREE-CSP-SOLVER (Russell & Norvig, capitolo 5.5)
 #  - passata bottom-up: MAKE-ARC-CONSISTENT(parent, child)
 #  - passata top-down: assegnamento dei valori compatibili senza backtracking
 
 from collections import deque
-import copy
 
 def tree_solve(csp_instance):
     """
-    Risolve un CSP la cui struttura binaria è una foresta (insieme di alberi).
-    Restituisce un dizionario assignment var->value se trova una soluzione,
-    altrimenti None.
-
-    Parametri:
-        csp_instance: oggetto CSP con attributi:
-            - variables: list of variable names
-            - domains: dict var -> list of possible values
-            - constraints: list of (vars_tuple, func) dove vars_tuple è tuple di 1 o 2 variabili
-
-    Strategia (seguendo R&N):
+    Risoluzione (seguendo R&N):
     1. Costruire strutture per vincoli binari e unari.
     2. Costruire il grafo di adiacenza usando solo i vincoli binari.
     3. Per ogni componente connessa (albero):
@@ -31,27 +20,27 @@ def tree_solve(csp_instance):
        c) passata top-down: assegnare un valore alla radice (qualsiasi valore rimasto),
           poi per ogni figlio scegliere un valore compatibile con il genitore (esiste di sicuro
           se la passata bottom-up ha avuto successo).
+       d) Restituisce un dizionario assignment var->value se trova una soluzione,
+          altrimenti None.
     """
     # ----------------------------
     # 1) Separare vincoli binari e vincoli unari; controllare vincoli n-ari
     # ----------------------------
-    binary_constraints = {}  # key: frozenset({x,y}) -> tuple (a_name, b_name, func) meaning func(a_val, b_val) expects a_name then b_name
-    unary_constraints = {}   # key: var -> list of unary functions
+    binary_constraints = {}  # key: frozenset({x,y}), quindi è immutabile
+    unary_constraints = {}   # key: var -> lista di funzioni unarie
 
     # Scansione dei vincoli per popolare le due strutture
     for vars_tuple, func in csp_instance.constraints:
         if len(vars_tuple) == 2:
             a_name, b_name = vars_tuple[0], vars_tuple[1]
             key = frozenset({a_name, b_name})
-            # memorizziamo la funzione con l'ordine originale dei nomi (utile per chiamare correttamente)
+            # memorizziamo la funzione con l'ordine originale dei nomi
             binary_constraints[key] = (a_name, b_name, func)
         elif len(vars_tuple) == 1:
             var_name = vars_tuple[0]
             unary_constraints.setdefault(var_name, []).append(func)
         else:
-            # Presenza di vincolo n-ario; questo solver per alberi non è progettato per gestirli.
-            # Tornare None per indicare che una soluzione con questo metodo non è garantita.
-            # (Si potrebbe implementare una riduzione avanzata, ma non qui.)
+            # Presenza di vincolo n-ario (presenti solo in cryptoaritmetica e gestiti nella classe del cutset)
             return None
 
     # ----------------------------

@@ -1,8 +1,41 @@
 === ISTANZA: Mappa_Australia ===
 Variabili CSP: ['WA', 'NT', 'SA', 'Q', 'NSW', 'V', 'T']
-Variabili del cutset: ['SA']
+Cutset (min-fill): ['WA', 'NT', 'Q', 'SA']
 
-Provo assegnazione parziale: {'SA': 'R'}
-==> Soluzione completa trovata: {'SA': 'R', 'WA': 'G', 'NT': 'B', 'Q': 'G', 'NSW': 'B', 'V': 'G', 'T': 'R'}
+Provo assegnazione parziale del cutset: {'WA': 'R', 'NT': 'R', 'Q': 'R', 'SA': 'R'}
+Assegnazione del cutset viola vincoli interni; salto.
 
----> SOLUZIONE FINALE: {'SA': 'R', 'WA': 'G', 'NT': 'B', 'Q': 'G', 'NSW': 'B', 'V': 'G', 'T': 'R'}
+Provo assegnazione parziale del cutset: {'WA': 'R', 'NT': 'R', 'Q': 'R', 'SA': 'G'}
+Assegnazione del cutset viola vincoli interni; salto.
+
+Provo assegnazione parziale del cutset: {'WA': 'R', 'NT': 'R', 'Q': 'R', 'SA': 'B'}
+Assegnazione del cutset viola vincoli interni; salto.
+
+Provo assegnazione parziale del cutset: {'WA': 'R', 'NT': 'R', 'Q': 'G', 'SA': 'R'}
+Assegnazione del cutset viola vincoli interni; salto.
+
+Provo assegnazione parziale del cutset: {'WA': 'R', 'NT': 'R', 'Q': 'G', 'SA': 'G'}
+Assegnazione del cutset viola vincoli interni; salto.
+
+Provo assegnazione parziale del cutset: {'WA': 'R', 'NT': 'R', 'Q': 'G', 'SA': 'B'}
+Assegnazione del cutset viola vincoli interni; salto.
+
+Provo assegnazione parziale del cutset: {'WA': 'R', 'NT': 'R', 'Q': 'B', 'SA': 'R'}
+Assegnazione del cutset viola vincoli interni; salto.
+
+Provo assegnazione parziale del cutset: {'WA': 'R', 'NT': 'R', 'Q': 'B', 'SA': 'G'}
+Assegnazione del cutset viola vincoli interni; salto.
+
+Provo assegnazione parziale del cutset: {'WA': 'R', 'NT': 'R', 'Q': 'B', 'SA': 'B'}
+Assegnazione del cutset viola vincoli interni; salto.
+
+Provo assegnazione parziale del cutset: {'WA': 'R', 'NT': 'G', 'Q': 'R', 'SA': 'R'}
+Assegnazione del cutset viola vincoli interni; salto.
+
+Provo assegnazione parziale del cutset: {'WA': 'R', 'NT': 'G', 'Q': 'R', 'SA': 'G'}
+Assegnazione del cutset viola vincoli interni; salto.
+
+Provo assegnazione parziale del cutset: {'WA': 'R', 'NT': 'G', 'Q': 'R', 'SA': 'B'}
+==> Soluzione completa trovata: {'WA': 'R', 'NT': 'G', 'Q': 'R', 'SA': 'B', 'NSW': 'G', 'V': 'R', 'T': 'R'}
+
+---> SOLUZIONE FINALE: {'WA': 'R', 'NT': 'G', 'Q': 'R', 'SA': 'B', 'NSW': 'G', 'V': 'R', 'T': 'R'}

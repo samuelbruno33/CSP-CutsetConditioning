@@ -1,11 +1,11 @@
 === ISTANZA: Mappa_USA_semplificata ===
 Variabili CSP: ['WA', 'OR', 'CA', 'NV', 'UT']
-Variabili del cutset: ['OR', 'CA']
+Cutset (min-fill): ['NV', 'CA']
 
-Provo assegnazione parziale: {'OR': 'R', 'CA': 'R'}
-Violato vincolo su: ('OR', 'CA')
+Provo assegnazione parziale del cutset: {'NV': 'R', 'CA': 'R'}
+Assegnazione del cutset viola vincoli interni; salto.
 
-Provo assegnazione parziale: {'OR': 'R', 'CA': 'G'}
-==> Soluzione completa trovata: {'OR': 'R', 'CA': 'G', 'WA': 'G', 'NV': 'R', 'UT': 'B'}
+Provo assegnazione parziale del cutset: {'NV': 'R', 'CA': 'G'}
+==> Soluzione completa trovata: {'NV': 'R', 'CA': 'G', 'WA': 'G', 'OR': 'R', 'UT': 'B'}
 
----> SOLUZIONE FINALE: {'OR': 'R', 'CA': 'G', 'WA': 'G', 'NV': 'R', 'UT': 'B'}
+---> SOLUZIONE FINALE: {'NV': 'R', 'CA': 'G', 'WA': 'G', 'OR': 'R', 'UT': 'B'}

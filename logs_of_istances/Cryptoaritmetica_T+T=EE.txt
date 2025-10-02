@@ -1,9 +1,9 @@
 === ISTANZA: Cryptoaritmetica_T+T=EE ===
 Variabili CSP: ['T', 'E']
-Variabili del cutset: []
+Cutset (min-fill): []
 
-Provo assegnazione parziale: {}
-Fallita la parte residua, passo alla prossima assegnazione.
----NESSUNA SOLUZIONE TROVATA---
+Provo assegnazione parziale del cutset: {}
+Soluzione residua non trovata per questa assegnazione del cutset; proseguo.
+Nessuna soluzione trovata per nessuna assegnazione del cutset.
 
 ---> SOLUZIONE FINALE: None
