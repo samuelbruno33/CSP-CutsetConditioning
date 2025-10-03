@@ -23,48 +23,50 @@ def tree_solve(csp_instance):
        d) Restituisce un dizionario assignment var->value se trova una soluzione,
           altrimenti None.
     """
-    # ----------------------------
+
     # 1) Separare vincoli binari e vincoli unari; controllare vincoli n-ari
-    # ----------------------------
-    binary_constraints = {}  # key: frozenset({x,y}), quindi è immutabile
+    binary_constraints = {}  # key: frozenset({x,y}), quindi è un set immutabile
     unary_constraints = {}   # key: var -> lista di funzioni unarie
 
     # Scansione dei vincoli per popolare le due strutture
     for vars_tuple, func in csp_instance.constraints:
+        # Salvo in un set immutabile il vincolo binario
         if len(vars_tuple) == 2:
             a_name, b_name = vars_tuple[0], vars_tuple[1]
             key = frozenset({a_name, b_name})
             # memorizziamo la funzione con l'ordine originale dei nomi
             binary_constraints[key] = (a_name, b_name, func)
+        # Salvo in un set il vincolo unario
         elif len(vars_tuple) == 1:
             var_name = vars_tuple[0]
             unary_constraints.setdefault(var_name, []).append(func)
         else:
             # Presenza di vincolo n-ario (presenti solo in cryptoaritmetica e gestiti nella classe del cutset)
+            # Ritorno None perchè l’algoritmo di tree solving (DAC - Directional Arc Consistency) è pensato per vincoli binari / unari.
             return None
 
-    # ----------------------------
+    
     # 2) Costruzione grafo di adiacenza (usando solo vincoli binari)
-    # ----------------------------
     adjacency = {var: set() for var in csp_instance.variables}
+    # Qui (a_name, b_name, _) va a prendere una tupla di 3 elemtni che contiene i valori del mio binary_constraints[key] = (a_name, b_name, func)
+    # dato che voglio prendere solo i primi due valori ed ignorare il terzo (la func) per creare il grafo posso inserire
+    # questo carattere _ che in Python si usa come variabili "usa e getta" e significa che sappiamo che li c'è un valore, ma che non ci interessa e lo ignoriamo
     for key, (a_name, b_name, _) in binary_constraints.items():
         adjacency[a_name].add(b_name)
         adjacency[b_name].add(a_name)
 
-    # Se non ci sono variabili, triviale
+    # Se non ci sono variabili (CSP vuoto) ritorna vuoto
     if not csp_instance.variables:
         return {}
-
-    # ----------------------------
+    
     # 3) Copia dei domini e applicazione immediata dei vincoli unari
-    # ----------------------------
-    # Copia profonda leggera: new_domains contiene liste separate per evitare side-effects lato caller
+    # Copia dei domini, contiene liste separate per evitare side-effects
     domains = {var: list(csp_instance.domains.get(var, [])) for var in csp_instance.variables}
 
     # Applichiamo i vincoli unari subito per ridurre i domini iniziali (pruning semplice)
     for var, funcs in unary_constraints.items():
         if var not in domains:
-            # variabile sconosciuta: inconsistenza
+            # inconsistenza
             return None
         filtered_domain = []
         for value in domains[var]:
@@ -86,9 +88,8 @@ def tree_solve(csp_instance):
             # dominio vuoto dopo i vincoli unari -> inconsistente
             return None
 
-    # ----------------------------
-    # 4) Risolvi componente per componente (iterative, senza ricorsione)
-    # ----------------------------
+    
+    # 4) Risolvi componente per componente
     final_assignment = {}
     visited = set()
 
@@ -116,10 +117,9 @@ def tree_solve(csp_instance):
         # Ora vogliamo la post-order (children prima dei parent) per la passata bottom-up.
         postorder = list(reversed(bfs_order))
 
-        # ----------------------------
+        
         # 4a) Passata bottom-up: ripulire i domini dei parent usando i child (MAKE-ARC-CONSISTENT)
-        # Ripetiamo fino a punto fisso nella componente (sicuro e semplice)
-        # ----------------------------
+        # Ripetiamo fino a punto fisso nella componente
         changed = True
         while changed:
             changed = False
@@ -131,7 +131,7 @@ def tree_solve(csp_instance):
                 # Individuiamo la funzione che lega node_parent e node
                 key = frozenset({node_parent, node})
                 if key not in binary_constraints:
-                    # Se non c'è vincolo binario tale, non facciamo nulla (nessun vincolo tra parent e child)
+                    # Se non c'è il vincolo binario, non facciamo nulla (nessun vincolo tra parent e child)
                     continue
                 a_name, b_name, constraint_func = binary_constraints[key]
                 # vogliamo chiamare constraint(parent_val, child_val)
@@ -166,10 +166,9 @@ def tree_solve(csp_instance):
                     if not domains[node_parent]:
                         return None
 
-        # ----------------------------
+        
         # 4b) Passata top-down: assegnamento senza backtracking
         # Assumiamo che ogni nodo abbia almeno un valore dopo bottom-up.
-        # ----------------------------
         # Scegliamo per la radice il primo valore valido (qualsiasi va bene)
         if not domains[start_var]:
             return None

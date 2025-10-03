@@ -2,7 +2,7 @@
 
 # Implementazione del Cutset Conditioning con:
 #  - ricerca di cycle-cutset tramite euristica greedy MIN-FILL
-#  - test di aciclicità del grafo tramite leaf-pruning (non più con DFS ricorsiva)
+#  - aciclicità del grafo tramite leaf-pruning (non con DFS ricorsiva)
 #  - costruzione del CSP residuo (copia dei domini + trasformazione vincoli misti in unari)
 #  - chiamata a tree_solve
 
@@ -16,11 +16,7 @@ def is_graph_acyclic_via_leaf_pruning(adj_graph):
     Metodo: rimozione iterativa dei leaf nodes (nodi con grado <= 1).
     Se alla fine tutti i nodi vengono rimossi => grafo aciclico (foresta).
     Se rimangono nodi con grado >= 2 => esiste ciclo.
-
-    Perché usiamo questo metodo:
-      - Non è ricorsivo.
-      - È efficiente (linearmente proporzionale a |V|+|E|).
-      - Evita DFS ricorsivo e problemi di stack/ordering.
+    Complessità: O(∣V∣+∣E∣), perché ogni arco e nodo viene rimosso al massimo una volta.
     """
     # Copiamo la struttura per non modificare l'originale
     G = {node: set(neigh) for node, neigh in adj_graph.items()}
@@ -49,12 +45,10 @@ def is_graph_acyclic_via_leaf_pruning(adj_graph):
 
 def compute_fill_in_count(adj_graph, node):
     """
-    Calcola il numero di 'fill-in' (nuovi archi) che sarebbero introdotti tra i vicini di `node`
-    se `node` venisse eliminato. La metrica min-fill sceglie il nodo che minimizza questo numero.
-    Spiegazione:
-      - Per ogni coppia di vicini di node che NON sono già collegati,
-        l'eliminazione di node richiederebbe di aggiungere un arco per mantenere la connettività
-        (simulazione della triangolazione / eliminazione).
+    Calcola il numero di 'fill-edge' (nuovi archi) che sarebbero introdotti tra i vicini di node
+    se node venisse eliminato. La min-fill sceglie il nodo che minimizza questo numero.
+    Funziona in modo che per ogni coppia di vicini di node che non sono già collegati,
+    l'eliminazione di node richiederebbe di aggiungere un arco per mantenere la connettività
     """
     neighbors = list(adj_graph[node])
     count = 0
@@ -82,7 +76,7 @@ def find_cycle_cutset_min_fill(csp_instance):
     Ritorna la lista di variabili del cutset (nell'ordine di rimozione).
     """
 
-    # --- 1) Trovo tutte le variabili coinvolte in vincoli n-ari ---
+    # 1) Trovo tutte le variabili coinvolte in vincoli n-ari
     forced_cutset = set()
     for vars_tuple, _ in csp_instance.constraints:
         if len(vars_tuple) > 2:
@@ -90,7 +84,7 @@ def find_cycle_cutset_min_fill(csp_instance):
             for var in vars_tuple:
                 forced_cutset.add(var)
 
-    # --- 2) Costruisco grafo di adiacenza solo con vincoli binari ---
+    # 2) Costruisco grafo di adiacenza solo con vincoli binari
     adjacency = {v: set() for v in csp_instance.variables}
     for vars_tuple, _ in csp_instance.constraints:
         if len(vars_tuple) == 2:
@@ -99,7 +93,7 @@ def find_cycle_cutset_min_fill(csp_instance):
             adjacency[a].add(b)
             adjacency[b].add(a)
 
-    # --- 3) Copia di lavoro del grafo (modificheremo questa copia) ---
+    # 3) Copia di lavoro del grafo (modificheremo questa copia)
     working_graph = {v: set(neis) for v, neis in adjacency.items()}
 
     # Rimuovo subito dal grafo le variabili forzate nel cutset
@@ -110,7 +104,7 @@ def find_cycle_cutset_min_fill(csp_instance):
 
     cutset = list(forced_cutset)  # inizialmente contiene tutte quelle forzate
 
-    # --- 4) Ciclo: finché il grafo contiene un ciclo, applico min-fill ---
+    # 4) Ciclo: finché il grafo contiene un ciclo, applico min-fill
     while not is_graph_acyclic_via_leaf_pruning(working_graph):
         # Seleziono i candidati con grado >= 2 (solo loro possono chiudere cicli)
         candidate_nodes = [n for n in working_graph if len(working_graph[n]) >= 2]
@@ -118,7 +112,7 @@ def find_cycle_cutset_min_fill(csp_instance):
             # Caso raro: nessun nodo con grado >=2 ma grafo non aciclico (anomalia)
             node_to_remove = next(iter(working_graph))
         else:
-            # Scelgo il nodo con fill-in minimo (tie-break: grado minore)
+            # Scelgo il nodo con fill-in minimo (grado minore)
             best_node = None
             best_fill = None
             best_degree = None
@@ -226,7 +220,7 @@ def solve_with_cutset(csp_instance):
                 residual_constraints.append((constraint_vars, constraint_func))
                 continue
 
-            # caso: vincolo binario che coinvolge una cutset-var e una residual-var -> trasformo in unario
+            # 1° caso: vincolo binario che coinvolge una cutset-var e una residual-var -> trasformo in unario
             if len(constraint_vars) == 2:
                 a, b = constraint_vars
                 if (a in cutset_variables and b in residual_variables) or (b in cutset_variables and a in residual_variables):
@@ -242,7 +236,7 @@ def solve_with_cutset(csp_instance):
                     residual_constraints.append((unary_scope, unary_func))
                     continue
 
-            # caso: vincolo n-ario che coinvolge sia cutset che residuo:
+            # 2° caso: vincolo n-ario che coinvolge sia cutset che residuo:
             # - se tutte le variabili sono fissate (es. tutto nel cutset), lo abbiamo già verificato in precedenza
             # - se invece rimane qualche variabile libera nel vincolo n-ario, non lo trasformiamo qui:
             #   questo solver per alberi non gestisce vincoli n-ari nel residuo (vedi nota in testa al file).
