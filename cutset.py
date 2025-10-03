@@ -64,55 +64,66 @@ def compute_fill_in_count(adj_graph, node):
 
 def find_cycle_cutset_min_fill(csp_instance):
     """
-    Trova un cycle-cutset usando l'euristica greedy MIN-FILL:
-    - Prima individua tutte le variabili coinvolte in vincoli n-ari (con più di 2 variabili).
-      Queste variabili vengono inserite subito nel cutset forzato, perché i vincoli n-ari non
-      possono essere gestiti dal tree-solver.
-    - Costruisce il grafo primale usando solamente i vincoli binari presenti nel CSP.
+    Trova un cycle-cutset usando euristica greedy MIN-FILL con gestione migliorata dei vincoli n-ari:
+    - Costruisce il grafo primale usando i soli vincoli binari.
+    - Aggiunge forzatamente al cutset NON tutte le variabili dei vincoli n-ari,
+      ma UNA sola variabile per ciascun vincolo n-ario (euristica: quella con grado massimo).
     - Iterativamente seleziona la variabile con MINIMO fill-in (numero di nuovi archi tra vicini)
-      e la rimuove (simulando l'eliminazione).
-    - Dopo ogni eliminazione aggiunge i 'fill-in' tra i vicini e ripete fino a che il grafo risultante
-      è aciclico (ossia ogni ciclo è stato eliminato).
+      e la rimuove, fino a che il grafo diventa aciclico.
     Ritorna la lista di variabili del cutset (nell'ordine di rimozione).
     """
 
-    # 1) Trovo tutte le variabili coinvolte in vincoli n-ari
-    forced_cutset = set()
-    for vars_tuple, _ in csp_instance.constraints:
-        if len(vars_tuple) > 2:
-            # Tutte le variabili coinvolte in vincoli n-ari devono essere nel cutset
-            for var in vars_tuple:
-                forced_cutset.add(var)
-
-    # 2) Costruisco grafo di adiacenza solo con vincoli binari
+    # 1) Costruzione del grafo di adiacenza basato SOLO sui vincoli binari
     adjacency = {v: set() for v in csp_instance.variables}
     for vars_tuple, _ in csp_instance.constraints:
         if len(vars_tuple) == 2:
             a, b = vars_tuple
-            # Aggiungo arco tra le due variabili coinvolte
             adjacency[a].add(b)
             adjacency[b].add(a)
 
-    # 3) Copia di lavoro del grafo (modificheremo questa copia)
-    working_graph = {v: set(neis) for v, neis in adjacency.items()}
+    # 2) Gestione dei vincoli n-ari
+    # Invece di inserire tutte le variabili di un vincolo n-ario,
+    # scegliamo solo UNA variabile per vincolo.
+    forced_cutset = set()
+    for vars_tuple, _ in csp_instance.constraints:
+        if len(vars_tuple) > 2:
+            # scegliamo la variabile con grado massimo nel grafo di adiacenza
+            best_var = None
+            best_degree = -1
+            for var in vars_tuple:
+                deg = len(adjacency.get(var, []))
+                if deg > best_degree:
+                    best_var = var
+                    best_degree = deg
+            if best_var is not None:
+                forced_cutset.add(best_var)
 
-    # Rimuovo subito dal grafo le variabili forzate nel cutset
+    # 3) Copia del grafo per simulare rimozioni
+    working_graph = {v: set(neis) for v, neis in adjacency.items()}
+    cutset = list(forced_cutset)
+
+    # Rimuoviamo subito dal grafo le variabili forzate
     for var in forced_cutset:
-        for nb in working_graph[var]:
+        neighbors = list(working_graph[var])
+        # aggiungiamo archi di fill-in fra i vicini
+        for i in range(len(neighbors)):
+            for j in range(i + 1, len(neighbors)):
+                ni, nj = neighbors[i], neighbors[j]
+                working_graph[ni].add(nj)
+                working_graph[nj].add(ni)
+        # togliamo il nodo
+        for nb in neighbors:
             working_graph[nb].discard(var)
         working_graph[var].clear()
 
-    cutset = list(forced_cutset)  # inizialmente contiene tutte quelle forzate
-
-    # 4) Ciclo: finché il grafo contiene un ciclo, applico min-fill
+    # 4) Fase greedy con min-fill finché il grafo non è aciclico
     while not is_graph_acyclic_via_leaf_pruning(working_graph):
-        # Seleziono i candidati con grado >= 2 (solo loro possono chiudere cicli)
+        # candidati = nodi con almeno 2 vicini
         candidate_nodes = [n for n in working_graph if len(working_graph[n]) >= 2]
         if not candidate_nodes:
-            # Caso raro: nessun nodo con grado >=2 ma grafo non aciclico (anomalia)
+            # fallback: se non ci sono candidati, prendi un nodo qualunque
             node_to_remove = next(iter(working_graph))
         else:
-            # Scelgo il nodo con fill-in minimo (grado minore)
             best_node = None
             best_fill = None
             best_degree = None
@@ -125,25 +136,22 @@ def find_cycle_cutset_min_fill(csp_instance):
                     best_degree = deg
             node_to_remove = best_node
 
-        # Aggiungo la variabile scelta al cutset
         cutset.append(node_to_remove)
 
-        # Simulo eliminazione: collego tutti i vicini tra loro (fill-in)
+        # aggiorna il grafo simulando la rimozione
         neighbors = list(working_graph[node_to_remove])
-        n = len(neighbors)
-        for i in range(n):
-            for j in range(i + 1, n):
-                ni = neighbors[i]
-                nj = neighbors[j]
+        for i in range(len(neighbors)):
+            for j in range(i + 1, len(neighbors)):
+                ni, nj = neighbors[i], neighbors[j]
                 working_graph[ni].add(nj)
                 working_graph[nj].add(ni)
 
-        # Rimuovo completamente node_to_remove dal grafo
         for nb in neighbors:
             working_graph[nb].discard(node_to_remove)
         working_graph[node_to_remove].clear()
 
     return cutset
+
 
 
 def make_unary_from_binary_constraint(binary_func, cutset_variable_name, residual_variable_name, fixed_cutset_value, original_order):
