@@ -8,7 +8,7 @@ from collections import deque
 
 def tree_solve(csp_instance):
     """
-    Risoluzione (seguendo R&N):
+    Risoluzione seguendo procedimento di R&N:
     1. Costruire strutture per vincoli binari e unari.
     2. Costruire il grafo di adiacenza usando solo i vincoli binari.
     3. Per ogni componente connessa (albero):
