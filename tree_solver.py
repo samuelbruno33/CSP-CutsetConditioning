@@ -2,28 +2,11 @@
 
 # Implementa l'algoritmo TREE-CSP-SOLVER (Russell & Norvig, capitolo 5.5)
 #  - passata bottom-up: MAKE-ARC-CONSISTENT(parent, child)
-#  - passata top-down: assegnamento dei valori compatibili senza backtracking
+#  - passata top-down: assegnamento dei valori compatibili
 
 from collections import deque
 
 def tree_solve(csp_instance):
-    """
-    Risoluzione seguendo procedimento di R&N:
-    1. Costruire strutture per vincoli binari e unari.
-    2. Costruire il grafo di adiacenza usando solo i vincoli binari.
-    3. Per ogni componente connessa (albero):
-       a) scegliere una radice e ottenere un ordine topologico (padre prima dei figli).
-       b) passata bottom-up (dal basso verso la radice): per ogni arco (parent, child) eseguire
-          MAKE-ARC-CONSISTENT(parent, child) che rimuove dal dominio del parent i valori
-          che non hanno alcun valore nel dominio del child che soddisfi il vincolo.
-          Se qualche dominio diventa vuoto -> inconsistenza -> return None.
-       c) passata top-down: assegnare un valore alla radice (qualsiasi valore rimasto),
-          poi per ogni figlio scegliere un valore compatibile con il genitore (esiste di sicuro
-          se la passata bottom-up ha avuto successo).
-       d) Restituisce un dizionario assignment var->value se trova una soluzione,
-          altrimenti None.
-    """
-
     # 1) Separare vincoli binari e vincoli unari; controllare vincoli n-ari
     binary_constraints = {}  # key: frozenset({x,y}), quindi è un set immutabile
     unary_constraints = {}   # key: var -> lista di funzioni unarie
