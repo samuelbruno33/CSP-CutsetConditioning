@@ -16,7 +16,6 @@ def is_graph_acyclic_via_leaf_pruning(adj_graph):
     Si fa rimozione iterativa dei leaf nodes (nodi con grado <= 1).
     Se alla fine tutti i nodi vengono rimossi allora grafo aciclico.
     Se rimangono nodi con grado >= 2 allora esiste ciclo.
-    Complessità: O(∣V∣+∣E∣), perché ogni arco e nodo viene rimosso al massimo una volta.
     """
     # Copiamo la struttura per non modificare l'originale
     G = {node: set(neigh) for node, neigh in adj_graph.items()}
