@@ -14,8 +14,8 @@ def is_graph_acyclic_via_leaf_pruning(adj_graph):
     """
     Verifica se il grafo (non orientato) rappresentato da adj_graph è aciclico.
     Metodo: rimozione iterativa dei leaf nodes (nodi con grado <= 1).
-    Se alla fine tutti i nodi vengono rimossi => grafo aciclico (foresta).
-    Se rimangono nodi con grado >= 2 => esiste ciclo.
+    Se alla fine tutti i nodi vengono rimossi allora grafo aciclico (foresta).
+    Se rimangono nodi con grado >= 2 allora esiste ciclo.
     Complessità: O(∣V∣+∣E∣), perché ogni arco e nodo viene rimosso al massimo una volta.
     """
     # Copiamo la struttura per non modificare l'originale
