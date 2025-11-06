@@ -63,3 +63,4 @@ def two_two_two_eq_six_csp():
         return 3*(100*T + 10*W + O) == 100*S + 10*I + X
     constraints.append((tuple(variables), sum_three_two))
     return CSP(variables, domains, constraints)
+

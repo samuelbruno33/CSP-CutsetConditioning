@@ -247,3 +247,4 @@ def solve_with_cutset(csp_instance):
     # Nessuna assegnazione del cutset ha prodotto soluzione
     print("Nessuna soluzione trovata per nessuna assegnazione del cutset.")
     return None
+

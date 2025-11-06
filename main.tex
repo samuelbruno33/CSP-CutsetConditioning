@@ -15,7 +15,7 @@
 
 \title{Cutset Conditioning per CSP: implementazione e risultati}
 \author{Samuel Bruno}
-\date{}
+\date{}  
 
 \begin{document}
 \maketitle
@@ -25,11 +25,11 @@ La relazione descrive l'implementazione di un solver per problemi di soddisfacim
 \end{abstract}
 
 \section{Introduzione}
-Cutset conditioning è una tecnica che sfrutta la struttura del grafo dei vincoli: si sceglie un sottoinsieme di variabili, detto cutset, e si esplorano tutte le possibili assegnazioni per esse. Una volta fissato il cutset, le variabili rimanenti (detti residui) formano un grafo senza cicli, che può quindi essere risolto con algoritmi più semplici ed efficienti. Nel progetto, in particolare, il grafo residuo viene risolto tramite backtracking su alberi.
+Cutset conditioning è una tecnica che sfrutta la struttura del grafo dei vincoli: si sceglie un sottoinsieme di variabili, detto cutset, e si esplorano tutte le possibili assegnazioni per esse. Una volta fissato il cutset, le variabili rimanenti (dette residui) formano un grafo senza cicli, che può quindi essere risolto con algoritmi più semplici ed efficienti. Nel progetto, in particolare, il grafo residuo viene risolto tramite l’algoritmo \emph{TREE-CSP-SOLVER} basato su \emph{directional arc consistency (DAC)}, che garantisce una risoluzione polinomiale.
 
 Per ogni assegnazione del cutset si costruisce e si risolve il problema residuo; se il residuo ammette una soluzione, questa viene combinata con i valori assegnati al cutset per ottenere una soluzione completa del CSP.
 
-Ad esempio, nella mappa dell’Australia, la variabile South Australia (SA) appartiene a tutti i cicli. Se la si fissa, le altre regioni rimaste formano una struttura aciclica che può essere risolta tramite backtracking su alberi.
+Ad esempio, nella mappa dell’Australia, la variabile South Australia (SA) appartiene a tutti i cicli. Se la si fissa, le altre regioni rimaste formano una struttura aciclica che può essere risolta tramite TREE-CSP-SOLVER.
 
 Questa strategia è discussa nella letteratura di riferimento (Russell \& Norvig, Artificial Intelligence: A Modern Approach, §6.5.1; Dechter, Tractable Structures for Constraint Satisfaction Problems, §3.1).
 
@@ -43,16 +43,17 @@ In questa sezione vengono descritti i punti essenziali del metodo implementato:
       \item \texttt{domains}: lista del dominio dei valori possibili;
       \item \texttt{constraints}: lista di coppie \((\text{constraint\_variables}, \text{constraint\_function})\) dove la prima è una tupla di coppie di variabili (per le mappe ad esempio, sono le coppie di regioni adiacenti) mentre \(\text{constraint\_function}\) è una funzione booleana che, dati i valori assegnati a quelle variabili, nello stesso ordine, restituisce \texttt{True} se il vincolo è soddisfatto.
    \end{itemize}
-  \item \textbf{Selezione del cutset:} si costruisce il grafo di adiacenza considerando solo i vincoli binari; si applica un'euristica greedy che rimuove iterativamente la variabile di grado massimo finché non rimangono cicli (cycle-cutset).
+  \item \textbf{Selezione del cutset:} si costruisce il grafo di adiacenza considerando solo i vincoli binari; si applica un'euristica greedy \emph{min-fill}, che rimuove iterativamente la variabile che introduce il minor numero di archi aggiuntivi (fill-in) finché non rimangono cicli (cycle-cutset).
   \item \textbf{Combinazioni e verifica parziale:} si generano tutte le possibili combinazioni di valori per le variabili del cutset. Ogni assegnazione parziale viene controllata per verificare che rispetti i vincoli interni al cutset (ad esempio, che due regioni adiacenti non abbiano lo stesso colore). Se i vincoli non sono rispettati, quell’assegnazione viene scartata.
   \item \textbf{Costruzione del problema residuo:} una volta fissato il cutset, il problema rimanente (che coinvolge tutte le altre variabili) diventa privo di cicli. A questo punto:
 \begin{itemize}
     \item si mantengono i vincoli che riguardano solo le variabili residue;
     \item i vincoli binari che collegano una variabile del cutset a una variabile residua vengono trasformati in vincoli unari sulla variabile residua, sfruttando i valori fissati del cutset;
+    \item in presenza di vincoli n-ari, invece di inserire tutte le variabili nel cutset, se ne sceglie una sola (tipicamente quella con grado massimo nel grafo) per evitare esplosioni combinatorie;
     \item eventuali vincoli più complessi che coinvolgono sia cutset che residuo verranno verificati solo quando l’assegnazione completa sarà disponibile.
 \end{itemize}
 
-  \item \textbf{Risoluzione del residuo:} il problema residuo, ora ad albero, viene risolto con il backtracking per alberi. Se si trova una soluzione per il residuo, questa viene combinata con l’assegnazione del cutset per ottenere la soluzione completa del CSP. In caso contrario, si passa alla successiva combinazione di valori per il cutset.
+  \item \textbf{Risoluzione del residuo:} il problema residuo, ora ad albero, viene risolto con l’algoritmo \emph{TREE-CSP-SOLVER}, che prevede una passata bottom-up (arc-consistency tra parent e child) e una successiva passata top-down (assegnamento senza backtracking). Se si trova una soluzione per il residuo, questa viene combinata con l’assegnazione del cutset per ottenere la soluzione completa del CSP. In caso contrario, si passa alla successiva combinazione di valori per il cutset.
   
 \end{enumerate}
 
@@ -66,15 +67,16 @@ parziale rispetta i vincoli già definiti. In questo modo, durante la ricerca di
 si scartano subito le strade che non possono portare a un risultato valido.
 
 \subsection*{tree\_solver.py}
-Implementa il metodo \texttt{tree\_backtrack}: applica un backtracking ricorsivo, provando uno alla volta i valori nel dominio di ciascuna variabile e sfruttando is\_consistent per scartare subito le combinazioni incompatibili. La funzione assume che il grafo dei vincoli sia già privo di cicli.
+Implementa l’algoritmo \texttt{TREE-CSP-SOLVER} (Russell \& Norvig, §5.5), che risolve CSP ad albero in tempo lineare rispetto al numero di variabili. L’algoritmo applica una fase di propagazione di vincoli (directional arc consistency) e successivamente assegna i valori ai nodi top-down senza necessità di backtracking.
 
 \subsection*{cutset.py}
 Qui si trovano le parti principali che implementano la tecnica del cutset conditioning. 
 Nel dettaglio:
 \begin{itemize}
-  \item una funzione costruisce il grafo di adiacenza delle variabili a partire dai vincoli binari, e utilizza una procedura euristica per individuare un insieme di variabili da rimuovere (il cutset) in modo da eliminare i cicli;
-  \item Un’altra funzione si occupa di trasformare vincoli binari che collegano variabili del cutset e variabili residue in vincoli unari sulle variabili residue, fissando i valori già assegnati nel cutset;
-  \item Infine, la funzione \texttt{solve\_with\_cutset} si occupa di: provare tutte le possibili assegnazioni per il cutset, di verificare quali siano ammissibili, di costruire di volta in volta il problema residuo e di risolverlo con tree\_backtrack. Se il residuo ha una soluzione, questa viene combinata con i valori del cutset per ottenere una soluzione completa del CSP.
+  \item una funzione costruisce il grafo di adiacenza delle variabili a partire dai vincoli binari, e utilizza la procedura greedy \emph{min-fill} integrata con leaf pruning per individuare un insieme di variabili da rimuovere (il cutset) in modo da eliminare i cicli;
+  \item una funzione si occupa di trasformare vincoli binari che collegano variabili del cutset e variabili residue in vincoli unari sulle variabili residue, fissando i valori già assegnati nel cutset;
+  \item nel caso di vincoli n-ari, il cutset include solo una variabile scelta in maniera euristica (grado massimo) per controllare la complessità;
+  \item infine, la funzione \texttt{solve\_with\_cutset} si occupa di: provare tutte le possibili assegnazioni per il cutset, di verificare quali siano ammissibili, di costruire di volta in volta il problema residuo e di risolverlo con \texttt{tree\_solve}. Se il residuo ha una soluzione, questa viene combinata con i valori del cutset per ottenere una soluzione completa del CSP.
 \end{itemize}
 
 \subsection*{mapcolor.py e cryptarithmetic.py}
@@ -87,7 +89,6 @@ Questi due file hanno lo scopo di generare istanze concrete del problema da dare
 \subsection*{main.py}
 E' lo script principale che gestisce l’esecuzione del programma.  
 Per ogni istanza costruita (sia di mappe che di criptoaritmetica), lo script crea il corrispondente oggetto CSP, lo risolve tramite \texttt{solve\_with\_cutset} e salva l’intero risultato in un file di log all’interno della cartella \texttt{logs\_of\_istances}. I log sono utili per seguire i passaggi compiuti dal solver e per verificare i risultati ottenuti, anzichè farli stampare ad ogni iterazione in console.
-
 
 \section{Istanze testate e risultati}
 Elenco delle istanze eseguite e risultato osservato con la configurazione adottata:
@@ -105,36 +106,98 @@ Crypto & TWO + TWO + TWO = SIX & Soluzione trovata \\
 \bottomrule
 \end{tabular}
 
-\section{Esempio CSP: mappa Australia}
-Viene descritta la sequenza operativa eseguita dal programma sull’istanza \texttt{australia}.  
+% ----- Esempio CSP ------
 
-\paragraph{Istanza}  
-Le variabili sono \texttt{['WA','NT','SA','Q','NSW','V','T']}, ciascuna con dominio \(\{R,G,B\}\).  
-I vincoli binari impongono che regioni confinanti abbiano colori diversi.  
+\section{Flusso di esecuzione del programma sulla mappa dell'Australia}
+In questa sezione viene descritto in modo dettagliato il flusso del solver applicato all’istanza \texttt{australia}.
+Le variabili sono \texttt{['WA','NT','SA','Q','NSW','V','T']}, ciascuna con dominio \(\{R,G,B\}\), e i vincoli binari impongono che regioni confinanti abbiano colori diversi.
 
-\paragraph{Passaggi principali del solver}
+\paragraph{1. Costruzione del grafo dei vincoli}
+Il modulo \texttt{cutset.py} costruisce il grafo di adiacenza a partire dai vincoli binari.  
+Ogni nodo rappresenta una regione, e ogni arco un vincolo di diversità di colore tra due regioni adiacenti.  
+La lista di adiacenza iniziale è:
+
+\begin{itemize}
+  \item \texttt{WA: \{NT, SA\}} (grado 2)
+  \item \texttt{NT: \{WA, SA, Q\}} (grado 3)
+  \item \texttt{SA: \{WA, NT, Q, NSW, V\}} (grado 5)
+  \item \texttt{Q:  \{NT, SA, NSW\}} (grado 3)
+  \item \texttt{NSW:\{SA, Q, V\}} (grado 3)
+  \item \texttt{V:  \{SA, NSW\}} (grado 2)
+  \item \texttt{T:  \{\}} (isolata, grado 0)
+\end{itemize}
+
+\paragraph{2. Individuazione del cutset con l'algoritmo Min-Fill}
+Per rendere il grafo aciclico e poter applicare un risolutore ad albero, il programma utilizza la funzione \texttt{find\_cycle\_cutset\_min\_fill}.  
+L’algoritmo seleziona iterativamente i nodi da rimuovere in modo da ridurre al minimo il numero di nuovi archi (fill-in) necessari tra i loro vicini.  
+Questo processo elimina progressivamente i cicli presenti nella rete dei vincoli.  
+
+Nel caso della mappa australiana, i nodi rimossi sono:
+\[
+\text{cutset (min-fill)} = [\texttt{WA},\ \texttt{NT},\ \texttt{Q},\ \texttt{SA}]
+\]
+La rimozione di questi nodi rende il grafo residuo aciclico, composto da \(\{\texttt{NSW}, \texttt{V}, \texttt{T}\}\).
+
+\paragraph{3. Esplorazione e verifica delle assegnazioni del cutset}
+Il solver genera tutte le possibili assegnazioni per le variabili del cutset.  
+Ogni combinazione viene verificata rispetto ai vincoli interni tra le variabili del cutset stesso; quelle non consistenti vengono immediatamente scartate.  
+Ad esempio:
+\begin{itemize}
+  \item \(\{\texttt{WA='R', NT='R', Q='R', SA='R'}\}\) viene scartata poiché viola il vincolo \texttt{WA != NT};
+  \item \(\{\texttt{WA='R', NT='G', Q='R', SA='B'}\}\) risulta valida poiché tutti i vincoli interni sono rispettati.
+\end{itemize}
+
+\paragraph{4. Costruzione del problema residuo e pruning con vincoli unari}
+Una volta trovata un’assegnazione valida per il cutset, il solver costruisce il problema residuo composto dalle variabili rimanenti:
+\[
+R = \{\texttt{NSW}, \texttt{V}, \texttt{T}\}
+\]
+A questo punto, i vincoli che collegavano variabili del cutset a quelle del residuo vengono trasformati in vincoli unari, sfruttando i valori già assegnati.  
+In questo passaggio si riducono i domini delle variabili residue sulla base delle restrizioni imposte dal cutset fissato.  
+
+Ad esempio, per l’assegnazione del cutset:
+\[
+\{\texttt{WA}='R',\ \texttt{NT}='G',\ \texttt{Q}='R',\ \texttt{SA}='B'\}
+\]
+si ottiene:
+\begin{itemize}
+  \item \texttt{NSW} è adiacente a \texttt{SA} e \texttt{Q}: quindi non può essere né \(B\) né \(R\), e il suo dominio \(\{R,G,B\}\) diventa \(\{G\}\);
+  \item \texttt{V} è adiacente a \texttt{SA}: quindi non può essere \(B\), e il suo dominio diventa \(\{R,G\}\);
+  \item \texttt{T} è isolata, quindi mantiene il dominio \(\{R,G,B\}\).
+\end{itemize}
+
+\paragraph{5. Risoluzione del residuo con TREE-SOLVER e arc consistency}
+Il grafo residuo, ora aciclico, viene risolto dal modulo \texttt{tree\_solver.py} attraverso la funzione \texttt{tree\_solve}.  
+Questa opera in due fasi, secondo la procedura dell'algoritmo \emph{TREE -CSP-SOLVER} di Russell \& Norvig:
+
 \begin{enumerate}
-  \item \textbf{Costruzione del grafo dei vincoli.}  
-  Il modulo di cutset analizza i vincoli binari e costruisce il grafo di adiacenza tra le regioni.  
-  In questo grafo la regione SA risulta collegata a molte altre regioni, diventando quindi il nodo con grado più elevato.  
+  \item \textbf{Passata bottom-up: MAKE-ARC-CONSISTENT}  
+  In questa fase il solver applica un altro pruning, che però riguarda i vincoli binari interni al residuo.  
+  Scorrendo i nodi in postorder (dal basso verso la radice), il solver elimina dai domini dei genitori tutti i valori che non hanno alcun valore compatibile nei figli.  
+  Questo garantisce la consistenza degli archi (\emph{arc consistency}) all’interno del residuo.  
 
-  \item \textbf{Individuazione del cutset.}  
-  L’algoritmo \texttt{find\_cycle\_cutset} seleziona SA come cutset.  
-  Rimuovendo questa variabile, il grafo delle regioni residue diventa privo di cicli significativi e quindi gestibile con metodi più semplici.  
+  Ad esempio, per la coppia \(\texttt{NSW}-\texttt{V}\):  
+  \(\texttt{NSW}\) ha dominio \(\{G\}\) e \(\texttt{V}\) ha dominio \(\{R,G\}\);  
+  poiché esiste almeno un valore compatibile (\(\texttt{NSW}=G, \texttt{V}=R\)), nessun valore viene eliminato e la componente risulta consistente.
 
-  \item \textbf{Assegnazione delle variabili del cutset.}  
-  Si provano tutte le possibili assegnazioni di colore per SA.  
-  Ad esempio, fissando \{\texttt{SA}='R'\}, non si verificano violazioni tra i vincoli interni al cutset (che in questo caso è composto dalla sola variabile SA).  
-
-  \item \textbf{Costruzione del problema residuo.}  
-  Le variabili rimanenti (quindi il residuo) sono \(\{\text{WA, NT, Q, NSW, V, T}\}\).  
-  I vincoli che collegavano SA con queste regioni vengono trasformati in vincoli unari, ad esempio SA='R' implica WA$\neq$'R', NT$\neq$'R', e così via.  
-  I vincoli binari tra le regioni residue, come WA$\neq$NT, Q$\neq$NSW, ecc. restano invariati.  
-
-  \item \textbf{Risoluzione del problema residuo.}  
-  Il solver ad albero (\texttt{tree\_backtrack}) esplora i domini delle variabili residue rispettando i vincoli unari e binari.  
-  Se viene trovata una soluzione valida (soluzione parziale), questa viene unita all’assegnazione del cutset (ad esempio SA='R') per ottenere la soluzione completa della mappa.  
+  \item \textbf{Passata top-down: assegnamento deterministico}  
+  Dopo la propagazione, l’albero è già consistente.  
+  Partendo dalla radice, il solver assegna il primo valore disponibile nel dominio, e per ciascun figlio seleziona il primo valore compatibile con quello del genitore.  
+  Questo produce una soluzione completa in modo deterministico:  
+  \begin{itemize}
+    \item \(\texttt{NSW} = G\)
+    \item \(\texttt{V} = R\) (compatibile con \texttt{NSW}=G)
+    \item \(\texttt{T} = R\) (isolata, primo valore disponibile)
+  \end{itemize}
 \end{enumerate}
+
+\paragraph{6. Composizione finale della soluzione}
+Combinando la soluzione del residuo con l’assegnazione del cutset, il solver ottiene la colorazione completa:
+\[
+\{\texttt{WA}='R',\ \texttt{NT}='G',\ \texttt{Q}='R',\ \texttt{SA}='B',\ \texttt{NSW}='G',\ \texttt{V}='R',\ \texttt{T}='R'\}
+\]
+Il log finale mostra la sequenza di pruning, la propagazione dei vincoli e l’assegnamento che porta a questa soluzione coerente.
+
 
 \section{Riproducibilità}
 Per riprodurre i risultati:
