@@ -3,8 +3,6 @@
 Questo progetto implementa un solver per problemi di soddisfacimento di vincoli (CSP) basato sulla tecnica del *cutset conditioning*.  
 Sono incluse istanze di map coloring e di criptoaritmetica per testare il corretto funzionamento dell’algoritmo.
 
----
-
 ## Ruolo dei file
 
 - **csp.py**  
@@ -25,8 +23,6 @@ Sono incluse istanze di map coloring e di criptoaritmetica per testare il corret
 - **main.py**  
   Main che esegue la risoluzione di tutte le istanze e salva i risultati di ogni istanza in diversi file all'interno della cartella `logs_of_istances`.
 
----
-
 ## Riproduzione dei risultati
 
 Per riprodurre i risultati sperimentali:
@@ -42,8 +38,6 @@ Per riprodurre i risultati sperimentali:
 
 This project implements a solver for constraint satisfaction problems (CSP) based on the *cutset conditioning* technique.  
 Map coloring and cryptarithmetic instances are included to test the correct functioning of the algorithm.
-
----
 
 ## Role of files
 
@@ -64,8 +58,6 @@ Map coloring and cryptarithmetic instances are included to test the correct func
 
 - **main.py**  
   Main program that solves all instances and saves the results of each instance in different files within the `logs_of_instances` folder.
-
----
 
 ## Reproducing the results
 
