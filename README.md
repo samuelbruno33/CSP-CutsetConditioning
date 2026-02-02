@@ -1,4 +1,4 @@
-# Progetto: Cutset Conditioning per CSP
+# Project: Cutset Conditioning for CSP
 
 Questo progetto implementa un solver per problemi di soddisfacimento di vincoli (CSP) basato sulla tecnica del *cutset conditioning*.  
 Sono incluse istanze di map coloring e di criptoaritmetica per testare il corretto funzionamento dell’algoritmo.
@@ -36,4 +36,44 @@ Per riprodurre i risultati sperimentali:
 3. Eseguire il comando:  
 
    ```bash
+   python3 main.py
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+This project implements a solver for constraint satisfaction problems (CSP) based on the *cutset conditioning* technique.  
+Map coloring and cryptarithmetic instances are included to test the correct functioning of the algorithm.
+
+---
+
+## Role of files
+
+- **csp.py**  
+  Defines the `CSP` class, which represents a constraint satisfaction problem with variables, domains, and constraints.
+
+- **tree_solver.py**  
+  Implements a backtracking-based solver for tree CSPs.
+
+- **cutset.py**  
+  Implements the cutset conditioning technique: identifies the cutset, constructs the residual constraints, and solves the problem.
+
+- **mapcolor.py**  
+  Contains map coloring instance generators (Australia, simplified Europe, simplified USA).
+
+- **cryptarithmetic.py**  
+  Contains cryptarithmetic instance generators (`T+T=EE`, `SEND+MORE=MONEY`, `TWO+TWO+TWO=SIX`).
+
+- **main.py**  
+  Main program that solves all instances and saves the results of each instance in different files within the `logs_of_instances` folder.
+
+---
+
+## Reproducing the results
+
+To reproduce the experimental results:
+
+1. Copy all Python files to the same directory.  
+2. It is preferable to have the latest version of **Python 3** installed (no external libraries are required).  
+3. Run the command:
+
+```bash
    python3 main.py
